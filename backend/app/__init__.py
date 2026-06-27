@@ -50,6 +50,18 @@ def create_app(config_name='default'):
     from app.routes.api.auth.routes import auth_bp
     app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
     
+    from app.routes.api.patients import patients_bp
+    app.register_blueprint(patients_bp, url_prefix='/api/v1/patients')
+    
+    from app.routes.api.doctors import doctors_bp
+    app.register_blueprint(doctors_bp, url_prefix='/api/v1/doctors')
+    
+    from app.routes.api.appointments import appointments_bp
+    app.register_blueprint(appointments_bp, url_prefix='/api/v1/appointments')
+    
+    from app.routes.api.emr import emr_bp
+    app.register_blueprint(emr_bp, url_prefix='/api/v1/emr')
+    
     # Register web routes (Protected Dashboard)
     from app.routes.web import web_bp
     app.register_blueprint(web_bp)
@@ -66,7 +78,13 @@ def create_app(config_name='default'):
             'status': 'running',
             'health': '/api/health',
             'dashboard': '/dashboard',
-            'api_login': '/api/v1/auth/login',
+            'api_endpoints': {
+                'auth': '/api/v1/auth',
+                'patients': '/api/v1/patients',
+                'doctors': '/api/v1/doctors',
+                'appointments': '/api/v1/appointments',
+                'emr': '/api/v1/emr'
+            },
             'test_users': {
                 'admin': {'username': 'admin', 'password': 'Admin@123', 'role': 'super_admin'},
                 'doctor': {'username': 'dr.smith', 'password': 'Doctor@123', 'role': 'doctor'},
