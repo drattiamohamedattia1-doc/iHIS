@@ -12,8 +12,7 @@ user_roles = db.Table(
     'user_roles',
     db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
     db.Column('role_id', db.Integer, db.ForeignKey('roles.id'), primary_key=True),
-    db.Column('assigned_at', db.DateTime, default=datetime.utcnow),
-    db.Column('assigned_by', db.Integer, db.ForeignKey('users.id'), nullable=True)
+    db.Column('assigned_at', db.DateTime, default=datetime.utcnow)
 )
 
 role_permissions = db.Table(
@@ -24,7 +23,7 @@ role_permissions = db.Table(
 
 
 class User(UserMixin, db.Model):
-    """Core user model for all system users (patients, doctors, staff, etc.)"""
+    """Core user model for all system users"""
     __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -52,15 +51,15 @@ class User(UserMixin, db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_deleted = db.Column(db.Boolean, default=False)
     
-    # Relationships - Fixed with explicit foreign_keys
+    # Relationships - Using viewonly to avoid sync issues
     roles = db.relationship(
         'Role',
         secondary=user_roles,
-        primaryjoin=(id == user_roles.c.user_id),
-        secondaryjoin=(id == user_roles.c.role_id),
-        backref=db.backref('users', lazy='dynamic'),
-        lazy='dynamic'
+        lazy='dynamic',
+        viewonly=True
     )
+    
+    sessions = db.relationship('UserSession', backref='user', lazy='dynamic')
     
     def set_password(self, password):
         """Hash and set user password"""
@@ -119,12 +118,19 @@ class Role(db.Model):
     description = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationships
+    # Relationships - Using viewonly to avoid sync issues
+    users = db.relationship(
+        'User',
+        secondary=user_roles,
+        lazy='dynamic',
+        viewonly=True
+    )
+    
     permissions = db.relationship(
         'Permission',
         secondary=role_permissions,
-        backref=db.backref('roles', lazy='dynamic'),
-        lazy='dynamic'
+        lazy='dynamic',
+        viewonly=True
     )
     
     def __repr__(self):
@@ -140,6 +146,14 @@ class Permission(db.Model):
     description = db.Column(db.String(255))
     module = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships - Using viewonly to avoid sync issues
+    roles = db.relationship(
+        'Role',
+        secondary=role_permissions,
+        lazy='dynamic',
+        viewonly=True
+    )
     
     def __repr__(self):
         return f'<Permission {self.name}>'
@@ -157,9 +171,6 @@ class UserSession(db.Model):
     login_time = db.Column(db.DateTime, default=datetime.utcnow)
     logout_time = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True)
-    
-    # Relationships
-    user = db.relationship('User', backref=db.backref('sessions', lazy='dynamic'))
     
     def __repr__(self):
         return f'<UserSession {self.user_id}>'

@@ -3,7 +3,7 @@ Application Factory
 Creates and configures the Flask application.
 """
 import os
-from flask import Flask, jsonify, render_template_string
+from flask import Flask, jsonify
 from config import config
 
 
@@ -43,6 +43,10 @@ def create_app(config_name='default'):
         # Create all tables
         db.create_all()
     
+    # Register blueprints
+    from app.routes.api.auth.routes import auth_bp
+    app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
+    
     # Create required directories
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     
@@ -54,7 +58,13 @@ def create_app(config_name='default'):
             'version': '1.0.0',
             'status': 'running',
             'health': '/api/health',
-            'dashboard': '/dashboard'
+            'dashboard': '/dashboard',
+            'api_docs': '/api/v1/auth/login (POST)',
+            'test_users': {
+                'admin': 'Admin@123',
+                'doctor': 'dr.smith / Doctor@123',
+                'patient': 'patient1 / Patient@123'
+            }
         })
     
     # Dashboard endpoint
@@ -165,6 +175,30 @@ def create_app(config_name='default'):
                     50% {{ opacity: 0.5; }}
                     100% {{ opacity: 1; }}
                 }}
+                .api-section {{
+                    background: rgba(255,255,255,0.95);
+                    border-radius: 15px;
+                    padding: 25px;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+                    margin-bottom: 30px;
+                }}
+                .code-block {{
+                    background: #1e1e1e;
+                    color: #d4d4d4;
+                    padding: 15px;
+                    border-radius: 8px;
+                    font-family: 'Courier New', monospace;
+                    font-size: 0.9rem;
+                }}
+                .method-badge {{
+                    display: inline-block;
+                    padding: 5px 10px;
+                    border-radius: 5px;
+                    font-weight: bold;
+                    font-size: 0.8rem;
+                }}
+                .method-post {{ background: #28a745; color: white; }}
+                .method-get {{ background: #007bff; color: white; }}
             </style>
         </head>
         <body>
@@ -192,7 +226,7 @@ def create_app(config_name='default'):
                 
                 <!-- Stats Cards -->
                 <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="stat-card">
                             <div class="stat-icon text-primary">
                                 <i class="fas fa-users"></i>
@@ -201,7 +235,7 @@ def create_app(config_name='default'):
                             <div class="stat-label">Users</div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="stat-card">
                             <div class="stat-icon text-success">
                                 <i class="fas fa-user-tag"></i>
@@ -210,7 +244,7 @@ def create_app(config_name='default'):
                             <div class="stat-label">Roles</div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="stat-card">
                             <div class="stat-icon text-info">
                                 <i class="fas fa-procedures"></i>
@@ -219,10 +253,7 @@ def create_app(config_name='default'):
                             <div class="stat-label">Patients</div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="stat-card">
                             <div class="stat-icon text-warning">
                                 <i class="fas fa-user-md"></i>
@@ -231,7 +262,10 @@ def create_app(config_name='default'):
                             <div class="stat-label">Doctors</div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-3">
                         <div class="stat-card">
                             <div class="stat-icon text-danger">
                                 <i class="fas fa-stethoscope"></i>
@@ -240,13 +274,115 @@ def create_app(config_name='default'):
                             <div class="stat-label">Specialties</div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="stat-card">
                             <div class="stat-icon text-secondary">
                                 <i class="fas fa-calendar-check"></i>
                             </div>
                             <div class="stat-value text-secondary">{appointments_count}</div>
                             <div class="stat-label">Appointments</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon text-success">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="stat-value text-success">{Permission.query.count() if 'Permission' in dir() else 0}</div>
+                            <div class="stat-label">Permissions</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon text-info">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <div class="stat-value text-info">{len(tables)}</div>
+                            <div class="stat-label">Tables</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- API Endpoints -->
+                <div class="api-section">
+                    <h4 class="mb-4">
+                        <i class="fas fa-plug text-primary me-2"></i>
+                        API Endpoints
+                    </h4>
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Method</th>
+                                <th>Endpoint</th>
+                                <th>Description</th>
+                                <th>Auth</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="method-badge method-post">POST</span></td>
+                                <td><code>/api/v1/auth/register</code></td>
+                                <td>Register new user</td>
+                                <td><span class="badge bg-secondary">No</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="method-badge method-post">POST</span></td>
+                                <td><code>/api/v1/auth/login</code></td>
+                                <td>Login & get JWT token</td>
+                                <td><span class="badge bg-secondary">No</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="method-badge method-get">GET</span></td>
+                                <td><code>/api/v1/auth/me</code></td>
+                                <td>Get current user info</td>
+                                <td><span class="badge bg-warning">JWT</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="method-badge method-post">POST</span></td>
+                                <td><code>/api/v1/auth/refresh</code></td>
+                                <td>Refresh access token</td>
+                                <td><span class="badge bg-warning">JWT</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="method-badge method-post">POST</span></td>
+                                <td><code>/api/v1/auth/logout</code></td>
+                                <td>Logout & blacklist token</td>
+                                <td><span class="badge bg-warning">JWT</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Test Credentials -->
+                <div class="api-section">
+                    <h4 class="mb-4">
+                        <i class="fas fa-key text-warning me-2"></i>
+                        Test Credentials
+                    </h4>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="code-block">
+                                <strong>Super Admin</strong><br>
+                                Username: <span style="color: #4ec9b0;">admin</span><br>
+                                Password: <span style="color: #4ec9b0;">Admin@123</span><br>
+                                Role: super_admin
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="code-block">
+                                <strong>Doctor</strong><br>
+                                Username: <span style="color: #4ec9b0;">dr.smith</span><br>
+                                Password: <span style="color: #4ec9b0;">Doctor@123</span><br>
+                                Role: doctor
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="code-block">
+                                <strong>Patient</strong><br>
+                                Username: <span style="color: #4ec9b0;">patient1</span><br>
+                                Password: <span style="color: #4ec9b0;">Patient@123</span><br>
+                                Role: patient
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -350,6 +486,30 @@ def create_app(config_name='default'):
         })
     
     # Error handlers
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({
+            'success': False,
+            'error': 'Bad Request',
+            'message': str(error.description) if hasattr(error, 'description') else 'Invalid request'
+        }), 400
+    
+    @app.errorhandler(401)
+    def unauthorized(error):
+        return jsonify({
+            'success': False,
+            'error': 'Unauthorized',
+            'message': 'Authentication is required to access this resource'
+        }), 401
+    
+    @app.errorhandler(403)
+    def forbidden(error):
+        return jsonify({
+            'success': False,
+            'error': 'Forbidden',
+            'message': 'You do not have permission to access this resource'
+        }), 403
+    
     @app.errorhandler(404)
     def not_found(error):
         return jsonify({
@@ -357,6 +517,22 @@ def create_app(config_name='default'):
             'error': 'Not Found',
             'message': 'The requested resource was not found on this server'
         }), 404
+    
+    @app.errorhandler(405)
+    def method_not_allowed(error):
+        return jsonify({
+            'success': False,
+            'error': 'Method Not Allowed',
+            'message': 'The HTTP method used is not allowed for this resource'
+        }), 405
+    
+    @app.errorhandler(422)
+    def unprocessable_entity(error):
+        return jsonify({
+            'success': False,
+            'error': 'Unprocessable Entity',
+            'message': 'The request was well-formed but could not be processed'
+        }), 422
     
     @app.errorhandler(500)
     def server_error(error):
