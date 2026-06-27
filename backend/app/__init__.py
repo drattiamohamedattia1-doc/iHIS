@@ -36,58 +36,55 @@ def create_app(config_name='default'):
     
     # Import models to register them with SQLAlchemy
     with app.app_context():
-        # Import all models
+        # Import core models
         from app.models.base import BaseModel, TimestampMixin
         from app.models.users import User, Role, Permission, UserSession
         from app.models.patients import Patient, MedicalRecord, Diagnosis, Vaccination, VitalSigns
         from app.models.doctors import Doctor, Specialty, DoctorSchedule
         from app.models.appointments import Appointment
         
+        # Import new models for Lab, Radiology, Pharmacy, Nursing, Dental
+        from app.models.lab import LabOrder, LabResult
+        from app.models.rad import RadiologyOrder, RadiologyReport
+        from app.models.pharm import PharmacyInventory, Prescription
+        from app.models.nurse import NursingTask, CarePlan
+        from app.models.dental_m import DentalRecord, DentalProcedure
+        
         # Create all tables
         db.create_all()
     
-    # ==================== API Blueprints ====================
-    # Authentication
+    # ==================== Register API blueprints ====================
     from app.routes.api.auth.routes import auth_bp
     app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
     
-    # Patients
     from app.routes.api.patients import patients_bp
     app.register_blueprint(patients_bp, url_prefix='/api/v1/patients')
     
-    # Doctors
     from app.routes.api.doctors import doctors_bp
     app.register_blueprint(doctors_bp, url_prefix='/api/v1/doctors')
     
-    # Appointments
     from app.routes.api.appointments import appointments_bp
     app.register_blueprint(appointments_bp, url_prefix='/api/v1/appointments')
     
-    # EMR
     from app.routes.api.emr import emr_bp
     app.register_blueprint(emr_bp, url_prefix='/api/v1/emr')
     
-    # Laboratory
     from app.routes.api.laboratory import lab_bp
     app.register_blueprint(lab_bp, url_prefix='/api/v1/laboratory')
     
-    # Radiology
     from app.routes.api.radiology import radiology_bp
     app.register_blueprint(radiology_bp, url_prefix='/api/v1/radiology')
     
-    # Pharmacy
     from app.routes.api.pharmacy import pharmacy_bp
     app.register_blueprint(pharmacy_bp, url_prefix='/api/v1/pharmacy')
     
-    # Nursing
     from app.routes.api.nursing import nursing_bp
     app.register_blueprint(nursing_bp, url_prefix='/api/v1/nursing')
     
-    # Dental
     from app.routes.api.dental import dental_bp
     app.register_blueprint(dental_bp, url_prefix='/api/v1/dental')
     
-    # ==================== Web Routes ====================
+    # Register web routes (Protected Dashboard)
     from app.routes.web import web_bp
     app.register_blueprint(web_bp)
     
