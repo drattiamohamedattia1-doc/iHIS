@@ -87,7 +87,6 @@
             const res = await api.get(`/laboratory/results/${patientId}`);
             const results = res.results;
             document.getElementById('labResults').innerHTML = results.map(r => `<p>${r.test_code}: ${r.value} (${r.is_abnormal ? 'Abnormal' : 'Normal'})</p>`).join('');
-            // Simple chart
             const ctx = document.getElementById('labChart').getContext('2d');
             if (results.length > 0) {
                 new Chart(ctx, {
@@ -111,18 +110,36 @@
         }
 
         async function bookAppointment() {
+            const doctorId = document.getElementById('doctorSelect').value;
+            const apptDate = document.getElementById('apptDate').value;
+            const apptTime = document.getElementById('apptTime').value;
+            const reason = document.getElementById('apptReason').value;
+
+            if (!patientId) {
+                alert('Patient ID is missing. Please reload the page.');
+                return;
+            }
+            if (!doctorId || !apptDate || !apptTime) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
             const data = {
                 patient_id: patientId,
-                doctor_id: parseInt(document.getElementById('doctorSelect').value),
-                date: document.getElementById('apptDate').value,
-                time: document.getElementById('apptTime').value,
+                doctor_id: parseInt(doctorId),
+                date: apptDate,
+                time: apptTime,
                 type: 'regular',
-                reason: document.getElementById('apptReason').value
+                reason: reason
             };
-            await api.post('/appointments', data);
-            alert('Appointment booked!');
-            bootstrap.Modal.getInstance(document.getElementById('bookModal')).hide();
-            loadAppointments();
+            try {
+                await api.post('/appointments', data);
+                alert('Appointment booked!');
+                bootstrap.Modal.getInstance(document.getElementById('bookModal')).hide();
+                loadAppointments();
+            } catch (e) {
+                alert('Failed to book appointment: ' + (e.message || 'Unknown error'));
+            }
         }
 
         function logout() { api.clearToken(); window.location.href = '/static/pages/login.html'; }

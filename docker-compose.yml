@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: ihis-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - DATABASE_URL=postgresql://ihis_user:ihis_password@db:5432/ihis_db
+      - SECRET_KEY=OZt5IafYxdjWmv6Lp2nFQzPXGrBc8NT3wCE7AJ9DMUVgb1q4hHyeKuilRSso0k
+      - JWT_SECRET_KEY=w5IlJqMLxRQO34UAcvdetuTpYamBW9j7i8VKrH20yfgbXFPDNoGhkzEnC6Z1Ss
+      - CORS_ORIGINS=http://localhost:3000,http://frontend
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      - db
+    networks:
+      - ihis-network
+
+  frontend:
+    image: nginx:alpine
+    container_name: ihis-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend/public:/usr/share/nginx/html
+    networks:
+      - ihis-network
+
+  db:
+    image: postgres:15-alpine
+    container_name: ihis-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=ihis_db
+      - POSTGRES_USER=ihis_user
+      - POSTGRES_PASSWORD=ihis_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - ihis-network
+
+volumes:
+  postgres_data:
+  uploads:
+
+networks:
+  ihis-network:
+    driver: bridge

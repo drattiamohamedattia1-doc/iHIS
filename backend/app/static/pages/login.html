@@ -49,7 +49,7 @@
                 const res = await api.post('/auth/login', { username, password });
                 api.setToken(res.access_token);
                 const me = await api.get('/auth/me');
-                const role = me.user.roles[0];
+                const role = me.user.role;
                 const pages = {
                     'patient': '/static/pages/patient.html',
                     'doctor': '/static/pages/doctor.html',

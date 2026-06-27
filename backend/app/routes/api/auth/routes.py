@@ -12,7 +12,7 @@ from flask_jwt_extended import (
 )
 from datetime import datetime
 from app.extensions import db
-from app.models.users import User, Role
+from app.models.users import User, Role, user_roles
 from app.models.patients import Patient
 from app.models.doctors import Doctor, Specialty
 
@@ -48,13 +48,18 @@ def register():
         )
         user.set_password(data['password'])
 
+        # ابحث عن الدور
         role = Role.query.filter_by(name=data['role']).first()
         if not role:
             return jsonify({'success': False, 'message': f'Role {data["role"]} not found'}), 400
-        user.roles.append(role)
 
         db.session.add(user)
-        db.session.flush()
+        db.session.flush()  # لنحصل على user.id
+
+        # إدراج الصلة في جدول user_roles يدويًا
+        db.session.execute(
+            user_roles.insert().values(user_id=user.id, role_id=role.id)
+        )
 
         import random
         if data['role'] == 'patient':
@@ -194,7 +199,4 @@ def get_current_user():
 
         return jsonify({'success': True, 'user': user_data}), 200
     except Exception as e:
-        # ⚠️ طباعة تتبع الخطأ لتشخيص المشكلة
-        import traceback
-        traceback.print_exc()
         return jsonify({'success': False, 'message': str(e)}), 500
