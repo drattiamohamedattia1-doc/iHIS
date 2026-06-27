@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Dashboard - iHIS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #f5f6fa; }
+        .navbar-custom { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .stat-card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark navbar-custom">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#"><i class="fas fa-hospital-alt"></i> iHIS Patient</a>
+            <span class="text-white" id="userName"></span>
+            <button class="btn btn-outline-light" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <i class="fas fa-calendar-alt fa-3x text-primary"></i>
+                    <h4 id="apptCount">0</h4>
+                    <p>Appointments</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <i class="fas fa-flask fa-3x text-success"></i>
+                    <h4 id="labCount">0</h4>
+                    <p>Lab Results</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <i class="fas fa-prescription-bottle-alt fa-3x text-warning"></i>
+                    <h4 id="rxCount">0</h4>
+                    <p>Prescriptions</p>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">Upcoming Appointments</div>
+                    <ul class="list-group list-group-flush" id="appointments"></ul>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">Latest Lab Results</div>
+                    <ul class="list-group list-group-flush" id="labResults"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        let patientId = null;
+
+        async function loadDashboard() {
+            if (!api.getToken()) { window.location.href = '/static/pages/login.html'; return; }
+            try {
+                const me = await api.get('/auth/me');
+                document.getElementById('userName').textContent = `Welcome, ${me.user.full_name}`;
+                patientId = me.user.patient_id;
+
+                if (!patientId) {
+                    alert('Patient profile not found');
+                    return;
+                }
+
+                // Appointments
+                const appts = await api.get(`/appointments?patient_id=${patientId}`);
+                document.getElementById('apptCount').textContent = appts.appointments.length;
+                const apptList = document.getElementById('appointments');
+                apptList.innerHTML = appts.appointments.map(a => 
+                    `<li class="list-group-item">${a.date} at ${a.time} - ${a.type} (${a.status})</li>`
+                ).join('');
+
+                // Lab Results
+                const labs = await api.get(`/laboratory/results/${patientId}`);
+                document.getElementById('labCount').textContent = labs.results.length;
+                const labList = document.getElementById('labResults');
+                labList.innerHTML = labs.results.map(r =>
+                    `<li class="list-group-item">${r.test_code}: ${r.value} (${r.is_abnormal ? 'Abnormal' : 'Normal'})</li>`
+                ).join('');
+
+                // Prescriptions count (optional)
+                const rx = await api.get(`/pharmacy/prescriptions?patient_id=${patientId}`);
+                document.getElementById('rxCount').textContent = rx.prescriptions.length;
+
+            } catch (err) {
+                console.error(err);
+                alert('Session expired');
+                window.location.href = '/static/pages/login.html';
+            }
+        }
+
+        function logout() { api.clearToken(); window.location.href = '/static/pages/login.html'; }
+        loadDashboard();
+    </script>
+</body>
+</html>

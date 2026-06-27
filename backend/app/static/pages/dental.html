@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dental Dashboard - iHIS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #f5f6fa; }
+        .navbar-custom { background: linear-gradient(135deg, #fd7e14, #ffc107); }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark navbar-custom">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#"><i class="fas fa-tooth"></i> iHIS Dental</a>
+            <span class="text-white" id="userName"></span>
+            <button class="btn btn-outline-light" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Dental Chart (Patient ID: 1)</div>
+                    <ul class="list-group list-group-flush" id="chartList"></ul>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Procedures</div>
+                    <ul class="list-group list-group-flush" id="proceduresList"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        async function loadDashboard() {
+            if (!api.getToken()) { window.location.href = '/static/pages/login.html'; return; }
+            const me = await api.get('/auth/me');
+            document.getElementById('userName').textContent = `Dentist: ${me.user.full_name}`;
+            const chart = await api.get('/dental/chart/1');
+            document.getElementById('chartList').innerHTML = chart.records.map(r =>
+                `<li class="list-group-item">Tooth ${r.tooth} (${r.system}) - ${r.condition} - ${r.treatment}</li>`
+            ).join('');
+            const procs = await api.get('/dental/procedures');
+            document.getElementById('proceduresList').innerHTML = procs.procedures.map(p =>
+                `<li class="list-group-item">${p.name} (${p.code}) - $${p.cost}</li>`
+            ).join('');
+        }
+        function logout() { api.clearToken(); window.location.href = '/static/pages/login.html'; }
+        loadDashboard();
+    </script>
+</body>
+</html>

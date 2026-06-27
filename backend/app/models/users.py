@@ -51,7 +51,7 @@ class User(UserMixin, db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_deleted = db.Column(db.Boolean, default=False)
     
-    # Relationships - Using viewonly to avoid sync issues
+    # Relationships – read-only to avoid sync errors
     roles = db.relationship(
         'Role',
         secondary=user_roles,
@@ -118,14 +118,7 @@ class Role(db.Model):
     description = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationships - Using viewonly to avoid sync issues
-    users = db.relationship(
-        'User',
-        secondary=user_roles,
-        lazy='dynamic',
-        viewonly=True
-    )
-    
+    # Relationships – read-only
     permissions = db.relationship(
         'Permission',
         secondary=role_permissions,
@@ -146,14 +139,6 @@ class Permission(db.Model):
     description = db.Column(db.String(255))
     module = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Relationships - Using viewonly to avoid sync issues
-    roles = db.relationship(
-        'Role',
-        secondary=role_permissions,
-        lazy='dynamic',
-        viewonly=True
-    )
     
     def __repr__(self):
         return f'<Permission {self.name}>'

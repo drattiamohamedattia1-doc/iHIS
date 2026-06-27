@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from app import create_app
 from app.extensions import db
-from app.models.users import User, Role, Permission
+from app.models.users import User, Role, Permission, user_roles, role_permissions
 from app.models.doctors import Specialty
 from app.models.pharm import PharmacyInventory
 from app.models.dental_m import DentalProcedure
@@ -113,9 +113,16 @@ def seed_data():
             existing = Role.query.filter_by(name=role_data['name']).first()
             if not existing:
                 role = Role(name=role_data['name'], description=role_data['description'])
-                role.permissions = role_data['permissions']
                 db.session.add(role)
+                db.session.flush()  # للحصول على role.id
+                # إدراج الصلات يدوياً في role_permissions
+                for perm in role_data['permissions']:
+                    db.session.execute(
+                        role_permissions.insert().values(role_id=role.id, permission_id=perm.id)
+                    )
                 print(f"   ✓ Created role: {role_data['name']}")
+            else:
+                print(f"   → Role {role_data['name']} already exists")
         
         db.session.commit()
         
@@ -188,9 +195,14 @@ def seed_data():
                 email_verified=True
             )
             admin.set_password('Admin@123')
-            admin_role = Role.query.filter_by(name='super_admin').first()
-            admin.roles.append(admin_role)
             db.session.add(admin)
+            db.session.flush()   # للحصول على admin.id
+            
+            admin_role = Role.query.filter_by(name='super_admin').first()
+            # ربط يدوي
+            db.session.execute(
+                user_roles.insert().values(user_id=admin.id, role_id=admin_role.id)
+            )
             print("   ✓ Created Super Admin (username: admin, password: Admin@123)")
         else:
             print("   → Super Admin already exists")
@@ -209,8 +221,13 @@ def seed_data():
                 is_verified=True
             )
             doctor_user.set_password('Doctor@123')
+            db.session.add(doctor_user)
+            db.session.flush()
+            
             doctor_role = Role.query.filter_by(name='doctor').first()
-            doctor_user.roles.append(doctor_role)
+            db.session.execute(
+                user_roles.insert().values(user_id=doctor_user.id, role_id=doctor_role.id)
+            )
             
             # Create doctor profile
             specialty = Specialty.query.filter_by(name='Cardiology').first()
@@ -220,7 +237,7 @@ def seed_data():
             import random
             from app.models.doctors import Doctor
             doctor = Doctor(
-                user_id=None,  # Will be set after flush
+                user_id=doctor_user.id,
                 specialty_id=specialty.id,
                 license_number=f"LIC-{random.randint(10000, 99999)}",
                 qualification='MD, FACC',
@@ -229,11 +246,6 @@ def seed_data():
                 bio='Experienced cardiologist with 15 years of practice.',
                 languages_spoken='English, Spanish'
             )
-            
-            db.session.add(doctor_user)
-            db.session.flush()
-            
-            doctor.user_id = doctor_user.id
             db.session.add(doctor)
             
             print("   ✓ Created Demo Doctor (username: dr.smith, password: Doctor@123)")
@@ -253,14 +265,19 @@ def seed_data():
                 is_verified=True
             )
             patient_user.set_password('Patient@123')
+            db.session.add(patient_user)
+            db.session.flush()
+            
             patient_role = Role.query.filter_by(name='patient').first()
-            patient_user.roles.append(patient_role)
+            db.session.execute(
+                user_roles.insert().values(user_id=patient_user.id, role_id=patient_role.id)
+            )
             
             # Create patient profile
             import random
             from app.models.patients import Patient
             patient = Patient(
-                user_id=None,
+                user_id=patient_user.id,
                 patient_id=f"PT-{random.randint(10000, 99999)}",
                 blood_type='A+',
                 emergency_contact_name='Michael Johnson',
@@ -271,11 +288,6 @@ def seed_data():
                 allergies='["Penicillin", "Peanuts"]',
                 chronic_conditions='["Asthma"]'
             )
-            
-            db.session.add(patient_user)
-            db.session.flush()
-            
-            patient.user_id = patient_user.id
             db.session.add(patient)
             
             print("   ✓ Created Demo Patient (username: patient1, password: Patient@123)")
