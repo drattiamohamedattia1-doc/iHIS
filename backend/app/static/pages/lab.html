@@ -119,10 +119,8 @@
 
         async function processOrder() {
             const status = document.getElementById('orderStatus').value;
-            // Update status
             await api.put(`/laboratory/orders/${selectedOrderId}/status`, { status });
 
-            // If completed, add result
             if (status === 'completed') {
                 const resultData = {
                     order_id: selectedOrderId,

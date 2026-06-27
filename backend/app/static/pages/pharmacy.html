@@ -72,16 +72,27 @@
         }
 
         async function dispense() {
+            const rxId = document.getElementById('rxId').value;
             const drugCode = document.getElementById('drugCode').value;
             const qty = parseInt(document.getElementById('quantity').value);
-            const res = await api.post('/pharmacy/dispense', { drug_code: drugCode, quantity: qty });
-            if (res.success) {
-                const rxId = document.getElementById('rxId').value;
-                if (rxId) await api.put(`/pharmacy/prescriptions/${rxId}/status`, { status: 'dispensed' });
-                alert(res.message);
-                location.reload();
-            } else {
-                alert(res.message);
+
+            if (!drugCode || !rxId) {
+                alert('Please select a prescription first.');
+                return;
+            }
+
+            try {
+                const res = await api.post('/pharmacy/dispense', { drug_code: drugCode, quantity: qty });
+                if (res.success) {
+                    // استخدم المعرف الرقمي للوصفة
+                    await api.put(`/pharmacy/prescriptions/${rxId}/status`, { status: 'dispensed' });
+                    alert(res.message);
+                    location.reload();
+                } else {
+                    alert(res.message);
+                }
+            } catch (e) {
+                alert('Error: ' + (e.message || 'Could not dispense'));
             }
         }
 

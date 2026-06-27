@@ -46,7 +46,7 @@
                 </div>
             </div>
 
-            <!-- right: appointments & quick actions -->
+            <!-- right: appointments -->
             <div class="col-md-8">
                 <div class="card p-3">
                     <h5><i class="fas fa-calendar-alt me-2"></i>My Appointments</h5>
@@ -97,7 +97,6 @@
         async function searchPatient() {
             const query = document.getElementById('patientSearch').value.trim();
             if (!query) return;
-            // Use patients endpoint with query parameter (add ?q= on backend)
             const res = await api.get(`/patients?q=${encodeURIComponent(query)}`);
             if (res.patients && res.patients.length > 0) {
                 selectedPatient = res.patients[0];
