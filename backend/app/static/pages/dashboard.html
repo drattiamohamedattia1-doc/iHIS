@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iHIS - Medical Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <style>
+        #chatbot-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; }
+        #chatbot-toggle { width: 60px; height: 60px; font-size: 1.5rem; border-radius: 50%; }
+        #chatbot-window { position: fixed; bottom: 100px; right: 30px; width: 350px; z-index: 10000; display: none; }
+        .rating { display: flex; flex-direction: row-reverse; justify-content: flex-end; }
+        .rating input { display: none; }
+        .rating label { cursor: pointer; font-size: 2rem; color: #ccc; }
+        .rating input:checked ~ label, .rating label:hover, .rating label:hover ~ label { color: #ffc107; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-hospital-alt fa-2x text-primary"></i>
+                <h4 class="mt-2">iHIS Medical</h4>
+                <small class="text-muted" id="sidebarRole"></small>
+            </div>
+            <hr class="text-light">
+            <div class="user-profile text-center mb-3">
+                <div class="avatar-circle mx-auto">
+                    <span class="initials" id="userInitials">U</span>
+                </div>
+                <p class="mt-2 mb-0 fw-bold text-light" id="sidebarUser">User</p>
+                <small class="text-muted" id="sidebarRoleText">Role</small>
+            </div>
+            <ul class="list-unstyled components" id="sidebarMenu"><!-- Dynamic --></ul>
+            <div class="sidebar-footer">
+                <button class="btn btn-outline-light btn-sm w-100" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i> Logout</button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div id="content" class="content">
+            <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4 sticky-top">
+                <div class="container-fluid">
+                    <button type="button" id="sidebarCollapse" class="btn btn-outline-primary"><i class="fas fa-bars"></i></button>
+                    <div class="ms-auto d-flex align-items-center">
+                        <div class="dropdown me-3">
+                            <button class="btn btn-light position-relative" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-bell"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationCount">0</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow" id="notificationMenu">
+                                <li><h6 class="dropdown-header">Notifications</h6></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <div id="notificationList" style="max-height:200px; overflow-y:auto;"></div>
+                                <li><a class="dropdown-item text-center text-primary" href="#">View All</a></li>
+                            </ul>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle me-1"></i> <span id="userNameTop">User</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow">
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-user-cog me-2"></i>Profile</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                            </ul>
+                        </div>
+                        <button class="btn btn-outline-secondary ms-2" id="darkModeToggle"><i class="fas fa-moon"></i></button>
+                    </div>
+                </div>
+            </nav>
+            <div id="dynamicContent"></div>
+        </div>
+    </div>
+
+    <!-- Chatbot -->
+    <div id="chatbot-container">
+        <button id="chatbot-toggle" class="btn btn-primary rounded-circle shadow-lg" onclick="toggleChatbot()"><i class="fas fa-robot"></i></button>
+        <div id="chatbot-window" class="card shadow-lg">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-robot me-2"></i> Medical Chatbot</span>
+                <button class="btn-close btn-close-white" onclick="toggleChatbot()"></button>
+            </div>
+            <div class="card-body" id="chatbot-messages" style="height:300px; overflow-y:auto;">
+                <div class="text-muted">Hello! How can I help you today?</div>
+            </div>
+            <div class="card-footer">
+                <div class="input-group">
+                    <input type="text" id="chatbot-input" class="form-control" placeholder="Type your question...">
+                    <button class="btn btn-primary" onclick="sendChatMessage()"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="genericModal" tabindex="-1">
+        <div class="modal-dialog"><div class="modal-content">
+            <div class="modal-header bg-primary text-white"><h5 class="modal-title" id="modalTitle">Modal</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body" id="modalBody"></div>
+        </div></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.41.0/dist/apexcharts.min.js"></script>
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

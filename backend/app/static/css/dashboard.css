@@ -1,0 +1,58 @@
+:root {
+    --sidebar-bg: #212529;
+    --sidebar-color: #fff;
+    --content-bg: #f4f6f9;
+    --card-bg: #ffffff;
+    --text-color: #212529;
+}
+
+body.dark {
+    --sidebar-bg: #1a1a2e;
+    --content-bg: #16213e;
+    --card-bg: #1f2a44;
+    --text-color: #e0e0e0;
+}
+
+.wrapper { display: flex; width: 100%; min-height: 100vh; }
+
+.sidebar {
+    min-width: 250px; max-width: 250px;
+    background: var(--sidebar-bg); color: var(--sidebar-color);
+    transition: all 0.3s; position: fixed; top: 0; left: 0;
+    height: 100vh; z-index: 999; overflow-y: auto;
+}
+.sidebar.active { margin-left: -250px; }
+.sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.sidebar ul li a {
+    padding: 12px 20px; display: block;
+    color: rgba(255,255,255,0.8); text-decoration: none;
+    transition: 0.3s; border-left: 4px solid transparent;
+}
+.sidebar ul li a:hover, .sidebar ul li a.active {
+    background: rgba(255,255,255,0.1); border-left: 4px solid #0d6efd; color: #fff;
+}
+.sidebar ul li a i { margin-right: 10px; width: 20px; text-align: center; }
+
+.content {
+    width: calc(100% - 250px); margin-left: 250px;
+    padding: 20px; background: var(--content-bg);
+    min-height: 100vh; color: var(--text-color); transition: all 0.3s;
+}
+
+.stat-card {
+    background: var(--card-bg); border-radius: 15px;
+    padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center;
+}
+.stat-card i { font-size: 2.5rem; margin-bottom: 0.5rem; }
+.stat-card h3 { font-size: 2rem; font-weight: bold; }
+
+.card {
+    background: var(--card-bg); border: none; border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06); color: var(--text-color);
+}
+
+@media (max-width: 768px) {
+    .sidebar { margin-left: -250px; }
+    .sidebar.active { margin-left: 0; }
+    .content { width: 100%; margin-left: 0; }
+}
