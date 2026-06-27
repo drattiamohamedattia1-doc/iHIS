@@ -2,35 +2,45 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dental Dashboard - iHIS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background: #f5f6fa; }
+        body { background: #f4f6f9; }
         .navbar-custom { background: linear-gradient(135deg, #fd7e14, #ffc107); }
+        .card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 20px; }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-dark navbar-custom">
+    <nav class="navbar navbar-dark navbar-custom p-2">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#"><i class="fas fa-tooth"></i> iHIS Dental</a>
+            <span class="navbar-brand"><i class="fas fa-tooth"></i> iHIS Dental</span>
             <span class="text-white" id="userName"></span>
             <button class="btn btn-outline-light" onclick="logout()">Logout</button>
         </div>
     </nav>
-    <div class="container mt-4">
+
+    <div class="container-fluid mt-3">
         <div class="row">
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">Dental Chart (Patient ID: 1)</div>
-                    <ul class="list-group list-group-flush" id="chartList"></ul>
+                <div class="card p-3">
+                    <h5>Dental Chart (Patient ID: <input type="number" id="chartPatientId" value="1" style="width:80px;"> <button class="btn btn-sm btn-outline-primary" onclick="loadChart()">Load</button>)</h5>
+                    <ul class="list-group" id="chartList"></ul>
+                </div>
+                <div class="card p-3">
+                    <h5>Add Record</h5>
+                    <input type="number" id="toothNo" class="form-control mb-2" placeholder="Tooth Number">
+                    <select id="condition" class="form-select mb-2">
+                        <option value="caries">Caries</option><option value="filling">Filling</option><option value="missing">Missing</option>
+                    </select>
+                    <input type="text" id="treatment" class="form-control mb-2" placeholder="Treatment">
+                    <button class="btn btn-primary" onclick="addRecord()">Add</button>
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">Procedures</div>
-                    <ul class="list-group list-group-flush" id="proceduresList"></ul>
+                <div class="card p-3">
+                    <h5>Procedures</h5>
+                    <ul class="list-group" id="proceduresList"></ul>
                 </div>
             </div>
         </div>
@@ -38,21 +48,40 @@
 
     <script src="/static/js/api.js"></script>
     <script>
-        async function loadDashboard() {
+        async function load() {
             if (!api.getToken()) { window.location.href = '/static/pages/login.html'; return; }
             const me = await api.get('/auth/me');
             document.getElementById('userName').textContent = `Dentist: ${me.user.full_name}`;
-            const chart = await api.get('/dental/chart/1');
-            document.getElementById('chartList').innerHTML = chart.records.map(r =>
-                `<li class="list-group-item">Tooth ${r.tooth} (${r.system}) - ${r.condition} - ${r.treatment}</li>`
-            ).join('');
+            loadChart();
             const procs = await api.get('/dental/procedures');
             document.getElementById('proceduresList').innerHTML = procs.procedures.map(p =>
                 `<li class="list-group-item">${p.name} (${p.code}) - $${p.cost}</li>`
             ).join('');
         }
+
+        async function loadChart() {
+            const pid = document.getElementById('chartPatientId').value;
+            const res = await api.get(`/dental/chart/${pid}`);
+            document.getElementById('chartList').innerHTML = res.records.map(r =>
+                `<li class="list-group-item">Tooth ${r.tooth} (${r.system}) - ${r.condition} | ${r.treatment || ''}</li>`
+            ).join('');
+        }
+
+        async function addRecord() {
+            const pid = document.getElementById('chartPatientId').value;
+            const data = {
+                patient_id: parseInt(pid),
+                tooth: parseInt(document.getElementById('toothNo').value),
+                condition: document.getElementById('condition').value,
+                treatment: document.getElementById('treatment').value
+            };
+            await api.post('/dental/chart', data);
+            alert('Record added');
+            loadChart();
+        }
+
         function logout() { api.clearToken(); window.location.href = '/static/pages/login.html'; }
-        loadDashboard();
+        load();
     </script>
 </body>
 </html>

@@ -4,41 +4,145 @@
     <meta charset="UTF-8">
     <title>Lab Dashboard - iHIS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+        .navbar-custom { background: linear-gradient(135deg, #0d6efd, #6610f2); }
+        .card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 20px; }
+        .table-responsive { max-height: 300px; overflow-y: auto; }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-dark bg-primary">
+    <nav class="navbar navbar-dark navbar-custom p-2">
         <div class="container-fluid">
-            <span class="navbar-brand">🧪 Lab Technician</span>
+            <span class="navbar-brand"><i class="fas fa-flask"></i> iHIS Lab</span>
+            <span class="text-white" id="userName"></span>
             <button class="btn btn-outline-light" onclick="logout()">Logout</button>
         </div>
     </nav>
-    <div class="container mt-4">
-        <h3 id="welcome"></h3>
-        <div class="alert alert-success" id="orders">Loading pending orders...</div>
+
+    <div class="container-fluid mt-3">
+        <div class="row">
+            <!-- Pending Orders -->
+            <div class="col-md-7">
+                <div class="card p-3">
+                    <h5><i class="fas fa-list-ul me-2"></i>Pending Orders</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr><th>ID</th><th>Patient ID</th><th>Test</th><th>Status</th><th>Action</th></tr>
+                            </thead>
+                            <tbody id="ordersBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Result / Update Status -->
+            <div class="col-md-5">
+                <div class="card p-3" id="resultCard" style="display:none;">
+                    <h5><i class="fas fa-edit me-2"></i>Process Order <span id="currentOrderId"></span></h5>
+                    <div class="mb-2">
+                        <label class="form-label">Status</label>
+                        <select id="orderStatus" class="form-select" onchange="toggleResultFields()">
+                            <option value="collected">Collected</option>
+                            <option value="processing">Processing</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                    <div id="resultFields" style="display:none;">
+                        <input type="text" id="resultValue" class="form-control mb-2" placeholder="Result value">
+                        <input type="text" id="resultUnit" class="form-control mb-2" placeholder="Unit">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="isAbnormal">
+                            <label class="form-check-label">Abnormal</label>
+                        </div>
+                        <textarea id="resultNotes" class="form-control mb-2" rows="2" placeholder="Notes"></textarea>
+                    </div>
+                    <button class="btn btn-success w-100" onclick="processOrder()">Submit</button>
+                </div>
+
+                <!-- Today's Completed -->
+                <div class="card p-3 mt-3">
+                    <h5><i class="fas fa-check-circle me-2"></i>Recently Completed</h5>
+                    <ul class="list-group" id="completedList"></ul>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/js/api.js"></script>
     <script>
-        async function load() {
+        let selectedOrderId = null;
+
+        async function loadDashboard() {
             if (!api.getToken()) { window.location.href = '/static/pages/login.html'; return; }
-            try {
-                const me = await api.get('/auth/me');
-                document.getElementById('welcome').textContent = `Welcome, ${me.user.full_name}`;
-                const orders = await api.get('/laboratory/orders?status=ordered');
-                if (orders.orders.length === 0) {
-                    document.getElementById('orders').textContent = 'No pending orders.';
-                } else {
-                    document.getElementById('orders').innerHTML = orders.orders.map(o =>
-                        `<div>Order #${o.id} - Patient ${o.patient_id} - Test: ${o.test_code}</div>`
-                    ).join('');
-                }
-            } catch (e) {
-                alert('Session expired');
-                window.location.href = '/static/pages/login.html';
-            }
+            const me = await api.get('/auth/me');
+            document.getElementById('userName').textContent = `Technician: ${me.user.full_name}`;
+            loadOrders();
         }
+
+        async function loadOrders() {
+            const res = await api.get('/laboratory/orders');
+            const orders = res.orders;
+            const pending = orders.filter(o => o.status !== 'completed');
+            const completed = orders.filter(o => o.status === 'completed');
+
+            document.getElementById('ordersBody').innerHTML = pending.map(o => `
+                <tr>
+                    <td>${o.id}</td>
+                    <td>${o.patient_id}</td>
+                    <td>${o.test_code}</td>
+                    <td><span class="badge bg-${o.status === 'ordered' ? 'warning' : 'info'}">${o.status}</span></td>
+                    <td><button class="btn btn-sm btn-outline-primary" onclick="selectOrder(${o.id})">Process</button></td>
+                </tr>
+            `).join('');
+
+            document.getElementById('completedList').innerHTML = completed.slice(0,5).map(o =>
+                `<li class="list-group-item">#${o.id} - ${o.test_code} (${o.status})</li>`
+            ).join('');
+        }
+
+        function selectOrder(id) {
+            selectedOrderId = id;
+            document.getElementById('currentOrderId').textContent = `#${id}`;
+            document.getElementById('resultCard').style.display = 'block';
+            document.getElementById('orderStatus').value = 'collected';
+            toggleResultFields();
+        }
+
+        function toggleResultFields() {
+            const status = document.getElementById('orderStatus').value;
+            document.getElementById('resultFields').style.display = (status === 'completed') ? 'block' : 'none';
+        }
+
+        async function processOrder() {
+            const status = document.getElementById('orderStatus').value;
+            // Update status
+            await api.put(`/laboratory/orders/${selectedOrderId}/status`, { status });
+
+            // If completed, add result
+            if (status === 'completed') {
+                const resultData = {
+                    order_id: selectedOrderId,
+                    test_code: '',  // Ideally get from order
+                    value: document.getElementById('resultValue').value,
+                    unit: document.getElementById('resultUnit').value,
+                    is_abnormal: document.getElementById('isAbnormal').checked,
+                    notes: document.getElementById('resultNotes').value
+                };
+                await api.post('/laboratory/results', resultData);
+            }
+
+            alert('Order processed!');
+            selectedOrderId = null;
+            document.getElementById('resultCard').style.display = 'none';
+            loadOrders();
+        }
+
         function logout() { api.clearToken(); window.location.href = '/static/pages/login.html'; }
-        load();
+        loadDashboard();
     </script>
 </body>
 </html>
