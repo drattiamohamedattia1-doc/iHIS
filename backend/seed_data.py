@@ -1,5 +1,6 @@
 """
-Seed Data Script - Creates initial roles, permissions, specialties and admin user.
+Seed Data Script - Creates initial roles, permissions, specialties, admin user,
+pharmacy inventory, and dental procedures.
 Run this once to populate the database with default data.
 """
 import sys
@@ -10,6 +11,8 @@ from app import create_app
 from app.extensions import db
 from app.models.users import User, Role, Permission
 from app.models.doctors import Specialty
+from app.models.pharm import PharmacyInventory
+from app.models.dental_m import DentalProcedure
 from datetime import datetime
 
 
@@ -137,7 +140,40 @@ def seed_data():
         
         db.session.commit()
         
-        # 4. Create Super Admin User
+        # 4. Seed Pharmacy Inventory
+        print("\n💊 Seeding Pharmacy Inventory...")
+        drugs = [
+            {'drug_code': 'PARA500', 'name': 'Paracetamol 500mg', 'category': 'Analgesic', 'price': 5.0, 'stock': 100},
+            {'drug_code': 'AMOX250', 'name': 'Amoxicillin 250mg', 'category': 'Antibiotic', 'price': 12.0, 'stock': 50},
+            {'drug_code': 'OMEP20', 'name': 'Omeprazole 20mg', 'category': 'GI', 'price': 15.0, 'stock': 75},
+            {'drug_code': 'MET500', 'name': 'Metformin 500mg', 'category': 'Diabetes', 'price': 8.0, 'stock': 60},
+            {'drug_code': 'ATOR10', 'name': 'Atorvastatin 10mg', 'category': 'Lipid', 'price': 20.0, 'stock': 40},
+            {'drug_code': 'LEVO500', 'name': 'Levofloxacin 500mg', 'category': 'Antibiotic', 'price': 18.0, 'stock': 30}
+        ]
+        for d in drugs:
+            if not PharmacyInventory.query.get(d['drug_code']):
+                db.session.add(PharmacyInventory(**d))
+        db.session.commit()
+        print("   ✓ Pharmacy inventory seeded")
+        
+        # 5. Seed Dental Procedures
+        print("\n🦷 Seeding Dental Procedures...")
+        procedures = [
+            {'name': 'Dental Filling', 'code': 'DF001', 'cost': 500},
+            {'name': 'Root Canal Treatment', 'code': 'RCT001', 'cost': 3000},
+            {'name': 'Tooth Extraction', 'code': 'EX001', 'cost': 800},
+            {'name': 'Dental Implant', 'code': 'IMP001', 'cost': 10000},
+            {'name': 'Scaling & Polishing', 'code': 'SP001', 'cost': 600},
+            {'name': 'Crown Placement', 'code': 'CR001', 'cost': 4000},
+            {'name': 'Orthodontic Braces', 'code': 'ORTH001', 'cost': 15000}
+        ]
+        for p in procedures:
+            if not DentalProcedure.query.filter_by(code=p['code']).first():
+                db.session.add(DentalProcedure(**p))
+        db.session.commit()
+        print("   ✓ Dental procedures seeded")
+        
+        # 6. Create Super Admin User
         print("\n👑 Creating Super Admin User...")
         admin = User.query.filter_by(username='admin').first()
         if not admin:
@@ -159,7 +195,7 @@ def seed_data():
         else:
             print("   → Super Admin already exists")
         
-        # 5. Create Demo Doctor
+        # 7. Create Demo Doctor
         print("\n👨‍⚕️ Creating Demo Doctor...")
         doctor_user = User.query.filter_by(username='dr.smith').first()
         if not doctor_user:
@@ -202,7 +238,7 @@ def seed_data():
             
             print("   ✓ Created Demo Doctor (username: dr.smith, password: Doctor@123)")
         
-        # 6. Create Demo Patient
+        # 8. Create Demo Patient
         print("\n🏥 Creating Demo Patient...")
         patient_user = User.query.filter_by(username='patient1').first()
         if not patient_user:
@@ -253,6 +289,8 @@ def seed_data():
         print(f"  📋 Permissions: {Permission.query.count()}")
         print(f"  👥 Roles: {Role.query.count()}")
         print(f"  🏥 Specialties: {Specialty.query.count()}")
+        print(f"  💊 Drugs in Pharmacy: {PharmacyInventory.query.count()}")
+        print(f"  🦷 Dental Procedures: {DentalProcedure.query.count()}")
         print(f"  👤 Users: {User.query.count()}")
         print("=" * 60)
         print("\n  Login Credentials:")
