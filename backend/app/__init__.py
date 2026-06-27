@@ -65,6 +65,9 @@ def create_app(config_name='default'):
     from app.routes.api.laboratory import lab_bp
     app.register_blueprint(lab_bp, url_prefix='/api/v1/laboratory')
     
+    from app.routes.api.radiology import radiology_bp
+    app.register_blueprint(radiology_bp, url_prefix='/api/v1/radiology')
+    
     # Register web routes (Protected Dashboard)
     from app.routes.web import web_bp
     app.register_blueprint(web_bp)
@@ -87,7 +90,8 @@ def create_app(config_name='default'):
                 'doctors': '/api/v1/doctors',
                 'appointments': '/api/v1/appointments',
                 'emr': '/api/v1/emr',
-                'laboratory': '/api/v1/laboratory'
+                'laboratory': '/api/v1/laboratory',
+                'radiology': '/api/v1/radiology'
             },
             'test_users': {
                 'admin': {'username': 'admin', 'password': 'Admin@123', 'role': 'super_admin'},
