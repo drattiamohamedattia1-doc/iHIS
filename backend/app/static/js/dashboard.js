@@ -136,7 +136,6 @@ async function loadHome() {
         }
     }, 100);
 
-    // Quick Actions تظهر فقط للأدوار المسموح لها
     let quickActions = '';
     if (['admin', 'super_admin', 'doctor', 'receptionist'].includes(currentUser.role))
         quickActions += `<button class="btn btn-primary w-100 mb-2" onclick="showNewPatientForm()"><i class="fas fa-plus me-2"></i>New Patient</button>`;
@@ -160,135 +159,44 @@ async function loadHome() {
     `;
 }
 
-// ===================== MY ROLE (دليل الأدوار الـ 11) =====================
+// ===================== MY ROLE =====================
 function loadMyRolePage() {
     const role = currentUser.role || 'unknown';
     const roleInfo = {
-        patient: {
-            desc: 'Book appointments, view medical records, lab & radiology reports, prescriptions, health dashboard, message doctors.',
-            tasks: ['Book appointments', 'View medical records', 'View lab & radiology reports', 'View prescriptions', 'Health dashboard', 'Message doctors']
-        },
-        doctor: {
-            desc: 'Manage appointments, EMR, diagnosis & treatment, prescriptions & orders, lab & radiology requests, patient follow-up.',
-            tasks: ['Manage appointments', 'Electronic Medical Records (EMR)', 'Diagnosis & treatment', 'Prescriptions & orders', 'Lab & radiology requests', 'Patient follow-up']
-        },
-        lab_technician: {
-            desc: 'Receive test orders, sample collection & tracking, test processing, result entry & validation, generate lab reports, quality control.',
-            tasks: ['Receive test orders', 'Sample collection & tracking', 'Test processing', 'Result entry & validation', 'Generate lab reports', 'Quality control']
-        },
-        radiologist: {
-            desc: 'Receive imaging requests, schedule & perform scans, upload images, report writing, attach images & reports, manage reporting queue.',
-            tasks: ['Receive imaging requests', 'Schedule & perform scans', 'Upload images', 'Report writing', 'Attach images & reports', 'Manage reporting queue']
-        },
-        pharmacist: {
-            desc: 'Verify prescriptions, dispense medications, manage inventory, check drug interactions, refill management, stock & expiry tracking.',
-            tasks: ['Verify prescriptions', 'Dispense medications', 'Manage inventory', 'Check drug interactions', 'Refill management', 'Stock & expiry tracking']
-        },
-        dentist: {
-            desc: 'Dental charting & records, treatment planning, procedure management, dental imaging, appointment & follow-up, progress documentation.',
-            tasks: ['Dental charting & records', 'Treatment planning', 'Procedure management', 'Dental imaging', 'Appointment & follow-up', 'Progress documentation']
-        },
-        physical_therapist: {
-            desc: 'Patient assessment, treatment plans, therapy sessions, progress tracking, outcome measures, discharge planning.',
-            tasks: ['Patient assessment', 'Treatment plans', 'Therapy sessions', 'Progress tracking', 'Outcome measures', 'Discharge planning']
-        },
-        nurse: {
-            desc: 'Patient care & monitoring, vitals & observations, medication administration, care plans, nurse notes, shift handovers.',
-            tasks: ['Patient care & monitoring', 'Vitals & observations', 'Medication administration', 'Care plans', 'Nurse notes', 'Shift handovers']
-        },
-        receptionist: {
-            desc: 'Patient registration, appointment scheduling, manage queues, insurance & billing info, visitor management, information desk.',
-            tasks: ['Patient registration', 'Appointment scheduling', 'Manage queues', 'Insurance & billing info', 'Visitor management', 'Information desk']
-        },
-        admin: {
-            desc: 'Manage departments, staff & role management, policies & configuration, reports & analytics, system settings, performance monitoring.',
-            tasks: ['Manage departments', 'Staff & role management', 'Policies & configuration', 'Reports & analytics', 'System settings', 'Performance monitoring']
-        },
-        super_admin: {
-            desc: 'Full system access, user & role management, system configuration, security & audit logs, database & backups, system maintenance.',
-            tasks: ['Full system access', 'User & role management', 'System configuration', 'Security & audit logs', 'Database & backups', 'System maintenance']
-        }
+        patient: { desc: 'Book appointments, view medical records, lab & radiology reports, prescriptions, health dashboard, message doctors.', tasks: ['Book appointments', 'View medical records', 'View lab & radiology reports', 'View prescriptions', 'Health dashboard', 'Message doctors'] },
+        doctor: { desc: 'Manage appointments, EMR, diagnosis & treatment, prescriptions & orders, lab & radiology requests, patient follow-up.', tasks: ['Manage appointments', 'Electronic Medical Records (EMR)', 'Diagnosis & treatment', 'Prescriptions & orders', 'Lab & radiology requests', 'Patient follow-up'] },
+        lab_technician: { desc: 'Receive test orders, sample collection & tracking, test processing, result entry & validation, generate lab reports, quality control.', tasks: ['Receive test orders', 'Sample collection & tracking', 'Test processing', 'Result entry & validation', 'Generate lab reports', 'Quality control'] },
+        radiologist: { desc: 'Receive imaging requests, schedule & perform scans, upload images, report writing, attach images & reports, manage reporting queue.', tasks: ['Receive imaging requests', 'Schedule & perform scans', 'Upload images', 'Report writing', 'Attach images & reports', 'Manage reporting queue'] },
+        pharmacist: { desc: 'Verify prescriptions, dispense medications, manage inventory, check drug interactions, refill management, stock & expiry tracking.', tasks: ['Verify prescriptions', 'Dispense medications', 'Manage inventory', 'Check drug interactions', 'Refill management', 'Stock & expiry tracking'] },
+        dentist: { desc: 'Dental charting & records, treatment planning, procedure management, dental imaging, appointment & follow-up, progress documentation.', tasks: ['Dental charting & records', 'Treatment planning', 'Procedure management', 'Dental imaging', 'Appointment & follow-up', 'Progress documentation'] },
+        physical_therapist: { desc: 'Patient assessment, treatment plans, therapy sessions, progress tracking, outcome measures, discharge planning.', tasks: ['Patient assessment', 'Treatment plans', 'Therapy sessions', 'Progress tracking', 'Outcome measures', 'Discharge planning'] },
+        nurse: { desc: 'Patient care & monitoring, vitals & observations, medication administration, care plans, nurse notes, shift handovers.', tasks: ['Patient care & monitoring', 'Vitals & observations', 'Medication administration', 'Care plans', 'Nurse notes', 'Shift handovers'] },
+        receptionist: { desc: 'Patient registration, appointment scheduling, manage queues, insurance & billing info, visitor management, information desk.', tasks: ['Patient registration', 'Appointment scheduling', 'Manage queues', 'Insurance & billing info', 'Visitor management', 'Information desk'] },
+        admin: { desc: 'Manage departments, staff & role management, policies & configuration, reports & analytics, system settings, performance monitoring.', tasks: ['Manage departments', 'Staff & role management', 'Policies & configuration', 'Reports & analytics', 'System settings', 'Performance monitoring'] },
+        super_admin: { desc: 'Full system access, user & role management, system configuration, security & audit logs, database & backups, system maintenance.', tasks: ['Full system access', 'User & role management', 'System configuration', 'Security & audit logs', 'Database & backups', 'System maintenance'] }
     };
     const info = roleInfo[role] || { desc: 'Role information not available.', tasks: [] };
     const tasksHtml = info.tasks.map(t => `<li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i>${t}</li>`).join('');
-    return `
-        <div class="card p-3">
-            <h5><i class="fas fa-id-card me-2"></i>Your Role: <span class="badge bg-primary">${role}</span></h5>
-            <p class="lead">${info.desc}</p>
-            <h6>What you can do:</h6>
-            <ul class="list-group">${tasksHtml}</ul>
-        </div>`;
+    return `<div class="card p-3"><h5><i class="fas fa-id-card me-2"></i>Your Role: <span class="badge bg-primary">${role}</span></h5><p class="lead">${info.desc}</p><h6>What you can do:</h6><ul class="list-group">${tasksHtml}</ul></div>`;
 }
 
-// ===================== جميع الدوال المساعدة =====================
-async function showDetailSection(type) {
-    const container = document.getElementById('homeDetailContainer');
-    switch(type) {
-        case 'patients': container.innerHTML = await loadPatientsList(); break;
-        case 'doctors': container.innerHTML = await loadDoctorsList(); break;
-        case 'pendingAppointments': container.innerHTML = await loadPendingAppointmentsList(); break;
-    }
-}
-
-async function loadPatientsList() {
-    const res = await api.get('/patients');
-    let rows = res.patients.map(p => `<tr><td>${p.patient_id}</td><td>${p.user_name}</td><td>${p.blood_type||'-'}</td><td>${p.age||'-'}</td><td>${p.status}</td><td><button class="btn btn-sm btn-outline-info" onclick="viewPatientDetails(${p.id})">View</button></td></tr>`).join('');
-    return `<div class="card p-3"><h5>Patients (${res.patients.length})</h5><table class="table"><thead><tr><th>MRN</th><th>Name</th><th>Blood</th><th>Age</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>`;
-}
-
-async function loadDoctorsList() {
-    const res = await api.get('/doctors');
-    let rows = res.doctors.map(d => `<tr><td>${d.name}</td><td>${d.specialty}</td><td>${d.experience_years || '-'} yrs</td><td>${d.is_available ? '<span class="badge bg-success">Available</span>' : '<span class="badge bg-secondary">Unavailable</span>'}</td></tr>`).join('');
-    return `<div class="card p-3"><h5>Doctors (${res.doctors.length})</h5><table class="table"><thead><tr><th>Name</th><th>Specialty</th><th>Experience</th><th>Availability</th></tr></thead><tbody>${rows}</tbody></table></div>`;
-}
-
-async function loadPendingAppointmentsList() {
-    const res = await api.get('/appointments');
-    const pending = res.appointments.filter(a => a.status === 'scheduled');
-    let rows = pending.map(a => `<tr><td>${a.id}</td><td>${a.patient_id}</td><td>${a.doctor_id}</td><td>${a.date} ${a.time}</td><td>${a.reason||''}</td><td>
-        <button class="btn btn-sm btn-outline-success me-1" onclick="confirmAppointment(${a.id})">Confirm</button>
-        <button class="btn btn-sm btn-outline-danger" onclick="cancelAppointment(${a.id})">Cancel</button>
-    </td></tr>`).join('');
-    return `<div class="card p-3"><h5>Pending Appointments (${pending.length})</h5><table class="table"><thead><tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Date/Time</th><th>Reason</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>`;
-}
-
-async function confirmAppointment(id) {
-    await api.put(`/appointments/${id}`, { status: 'confirmed' });
-    addNotification(`Appointment #${id} confirmed`);
-    showDetailSection('pendingAppointments');
-}
-
-async function cancelAppointment(id) {
-    await api.put(`/appointments/${id}`, { status: 'cancelled' });
-    addNotification(`Appointment #${id} cancelled`);
-    showDetailSection('pendingAppointments');
-}
-
+// ===================== PATIENTS =====================
 async function loadPatients() {
     const res = await api.get('/patients');
     let rows = res.patients.map(p => `<tr><td>${p.patient_id}</td><td>${p.user_name}</td><td>${p.blood_type||'-'}</td><td>${p.age||'-'}</td><td>${p.status}</td><td><button class="btn btn-sm btn-outline-primary" onclick="viewPatientDetails(${p.id})"><i class="fas fa-edit"></i></button></td></tr>`).join('');
-    return `<div class="card p-3"><h5>Patient List</h5><input type="text" class="form-control mb-3" placeholder="Search patients..." onkeyup="searchTable(this, 'patientsTable')"><table class="table" id="patientsTable"><thead><tr><th>MRN</th><th>Name</th><th>Blood</th><th>Age</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    const canCreate = ['admin', 'super_admin', 'doctor', 'receptionist'].includes(currentUser.role);
+    return `
+        <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5>Patient List</h5>
+                ${canCreate ? '<button class="btn btn-primary btn-sm" onclick="showNewPatientForm()"><i class="fas fa-plus me-1"></i>New Patient</button>' : ''}
+            </div>
+            <input type="text" class="form-control mb-3" placeholder="Search patients..." onkeyup="searchTable(this, 'patientsTable')">
+            <table class="table" id="patientsTable"><thead><tr><th>MRN</th><th>Name</th><th>Blood</th><th>Age</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table>
+        </div>`;
 }
 
-function searchTable(input, tableId) {
-    const filter = input.value.toUpperCase();
-    document.querySelectorAll(`#${tableId} tbody tr`).forEach(row => {
-        row.style.display = row.textContent.toUpperCase().includes(filter) ? '' : 'none';
-    });
-}
-
-async function viewPatientDetails(patientId) {
-    const patient = await api.get(`/patients/${patientId}`);
-    const prescriptions = await api.get(`/pharmacy/prescriptions?patient_id=${patientId}`);
-    const labOrders = await api.get(`/laboratory/orders?patient_id=${patientId}`);
-    const radOrders = await api.get(`/radiology/orders?patient_id=${patientId}`);
-    const p = patient.patient;
-    const rxList = prescriptions.prescriptions.map(r => `<li class="list-group-item"><strong>${r.drug_code}</strong> - ${r.dosage}, ${r.frequency}, ${r.duration} (${r.status})</li>`).join('');
-    const labList = labOrders.orders.map(o => `<li class="list-group-item"><strong>${o.test_code}</strong> - ${o.status}</li>`).join('');
-    const radList = radOrders.orders.map(o => `<li class="list-group-item"><strong>${o.modality}</strong> - ${o.body_part} (${o.status})</li>`).join('');
-    openModal('Patient Details', `<h6>${p.user_name} (MRN: ${p.patient_id})</h6><p>Blood: ${p.blood_type||'N/A'} | Age: ${p.age||'N/A'}</p><hr><h6>Prescriptions</h6><ul class="list-group mb-2">${rxList||'<li class="list-group-item text-muted">None</li>'}</ul><h6>Lab Orders</h6><ul class="list-group mb-2">${labList||'<li class="list-group-item text-muted">None</li>'}</ul><h6>Radiology Orders</h6><ul class="list-group">${radList||'<li class="list-group-item text-muted">None</li>'}</ul>`);
-}
-
+// ===================== APPOINTMENTS =====================
 async function loadAppointments() {
     let res;
     if (currentUser.patient_id) res = await api.get(`/appointments?patient_id=${currentUser.patient_id}`);
@@ -296,36 +204,36 @@ async function loadAppointments() {
     else res = await api.get('/appointments');
     let rows = res.appointments.map(a => `
         <tr>
-            <td>${a.id}</td>
-            <td>${a.patient_id}</td>
-            <td>${a.doctor_id}</td>
-            <td>${a.date} ${a.time}</td>
+            <td>${a.id}</td><td>${a.patient_id}</td><td>${a.doctor_id}</td><td>${a.date} ${a.time}</td>
             <td><span class="badge bg-${a.status==='scheduled'?'warning':'success'}">${a.status}</span></td>
             <td>
                 ${a.status === 'completed' ? `<button class="btn btn-sm btn-outline-warning me-1" onclick="showRateDoctor(${a.doctor_id}, ${a.patient_id})">Rate</button>` : ''}
                 <button class="btn btn-sm btn-outline-danger" onclick="cancelAppointment(${a.id})"><i class="fas fa-times"></i></button>
             </td>
-        </tr>
-    `).join('');
-    return `<div class="card p-3"><h5>Appointments</h5><table class="table"><thead><tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Date/Time</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+        </tr>`).join('');
+
+    const canBook = ['admin', 'super_admin', 'doctor', 'receptionist', 'patient'].includes(currentUser.role);
+    return `
+        <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5>Appointments</h5>
+                ${canBook ? '<button class="btn btn-success btn-sm" onclick="showBookAppointmentForm()"><i class="fas fa-calendar-plus me-1"></i>Book Appointment</button>' : ''}
+            </div>
+            <table class="table"><thead><tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Date/Time</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table>
+        </div>`;
 }
 
+// ===================== LABORATORY =====================
 async function loadLab() {
     const orders = await api.get('/laboratory/orders');
     const pending = orders.orders.filter(o => o.status !== 'completed');
     const rows = pending.map(o => `<tr><td>${o.id}</td><td>${o.patient_id}</td><td>${o.test_code}</td><td>${o.status}</td><td><button class="btn btn-sm btn-primary" onclick="processLabOrder(${o.id})">Process</button></td></tr>`).join('');
     return `<div class="card p-3"><h5>Pending Orders</h5><table class="table"><thead><tr><th>ID</th><th>Patient</th><th>Test</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table><div id="labForm"></div></div>`;
 }
-
 window.processLabOrder = async function(id) {
-    document.getElementById('labForm').innerHTML = `
-        <div class="card p-3 mt-3"><h5>Process Order #${id}</h5>
-            <select id="labStatus" class="form-select mb-2"><option value="collected">Collected</option><option value="processing">Processing</option><option value="completed">Completed</option></select>
-            <div id="resultFields" style="display:none;"><input type="text" id="resultValue" class="form-control mb-2" placeholder="Value"><input type="text" id="resultUnit" class="form-control mb-2" placeholder="Unit"></div>
-            <button class="btn btn-success" onclick="submitLabResult(${id})">Submit</button></div>`;
+    document.getElementById('labForm').innerHTML = `<div class="card p-3 mt-3"><h5>Process Order #${id}</h5><select id="labStatus" class="form-select mb-2"><option value="collected">Collected</option><option value="processing">Processing</option><option value="completed">Completed</option></select><div id="resultFields" style="display:none;"><input type="text" id="resultValue" class="form-control mb-2" placeholder="Value"><input type="text" id="resultUnit" class="form-control mb-2" placeholder="Unit"></div><button class="btn btn-success" onclick="submitLabResult(${id})">Submit</button></div>`;
     document.getElementById('labStatus').addEventListener('change', function(){ document.getElementById('resultFields').style.display = this.value === 'completed' ? 'block' : 'none'; });
 }
-
 window.submitLabResult = async function(id) {
     const status = document.getElementById('labStatus').value;
     await api.put(`/laboratory/orders/${id}/status`, { status });
@@ -336,17 +244,16 @@ window.submitLabResult = async function(id) {
     navigateTo('laboratory');
 }
 
+// ===================== RADIOLOGY =====================
 async function loadRad() {
     const orders = await api.get('/radiology/orders');
     const pending = orders.orders.filter(o => o.status !== 'reported');
     const rows = pending.map(o => `<tr><td>${o.id}</td><td>${o.patient_id}</td><td>${o.modality}</td><td>${o.status}</td><td><button class="btn btn-sm btn-primary" onclick="writeReport(${o.id})">Report</button></td></tr>`).join('');
     return `<div class="card p-3"><h5>Pending Orders</h5><table class="table"><thead><tr><th>ID</th><th>Patient</th><th>Modality</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table><div id="radForm"></div></div>`;
 }
-
 window.writeReport = function(id) {
     document.getElementById('radForm').innerHTML = `<div class="card p-3 mt-3"><h5>Report #${id}</h5><textarea id="findings" class="form-control mb-2" placeholder="Findings"></textarea><textarea id="impression" class="form-control mb-2" placeholder="Impression"></textarea><button class="btn btn-primary" onclick="submitRadReport(${id})">Submit</button></div>`;
 }
-
 window.submitRadReport = async function(id) {
     await api.post('/radiology/reports', { order_id: id, findings: document.getElementById('findings').value, impression: document.getElementById('impression').value, conclusion: '', is_critical: false });
     await api.put(`/radiology/orders/${id}/status`, { status: 'reported' });
@@ -354,6 +261,7 @@ window.submitRadReport = async function(id) {
     navigateTo('radiology');
 }
 
+// ===================== PHARMACY =====================
 async function loadPharmacy() {
     const rx = await api.get('/pharmacy/prescriptions?status=pending');
     const inv = await api.get('/pharmacy/inventory');
@@ -361,7 +269,6 @@ async function loadPharmacy() {
     const invItems = inv.inventory.map(i => `<li class="list-group-item d-flex justify-content-between">${i.name} <span class="badge bg-${i.stock<50?'warning':'success'}">${i.stock}</span></li>`).join('');
     return `<div class="row"><div class="col-md-6"><div class="card p-3"><h5>Prescriptions</h5><table class="table"><thead><tr><th>ID</th><th>Patient</th><th>Drug</th><th>Dosage</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div></div><div class="col-md-6"><div class="card p-3"><h5>Inventory</h5><ul class="list-group">${invItems}</ul></div></div></div>`;
 }
-
 window.dispenseRx = async function(rxId, drugCode) {
     const qty = prompt("Quantity:");
     if (!qty) return;
@@ -373,12 +280,53 @@ window.dispenseRx = async function(rxId, drugCode) {
     } else alert(res.message);
 }
 
+// ===================== NURSING =====================
 async function loadNursing() {
     const tasks = await api.get('/nursing/tasks');
     const rows = tasks.tasks.map(t => `<tr><td>${t.task}</td><td>${t.patient_id}</td><td>${t.status}</td></tr>`).join('');
-    return `<div class="row"><div class="col-md-6"><div class="card p-3"><h5>Tasks</h5><table class="table"><thead><tr><th>Task</th><th>Patient</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div></div><div class="col-md-6"><div class="card p-3"><h5>Record Vitals</h5><input type="number" id="vitalPatientId" class="form-control mb-2" placeholder="Patient ID"><input type="text" id="temp" class="form-control mb-2" placeholder="Temp"><input type="text" id="hr" class="form-control mb-2" placeholder="HR"><input type="text" id="bp" class="form-control mb-2" placeholder="BP (sys/dia)"><input type="text" id="spo2" class="form-control mb-2" placeholder="SpO2"><button class="btn btn-primary" onclick="recordVitalsNurse()">Save</button></div></div></div>`;
+    return `
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card p-3 mb-3">
+                    <h5>Tasks</h5>
+                    <button class="btn btn-sm btn-outline-primary mb-2" onclick="showNewTaskForm()"><i class="fas fa-plus me-1"></i>New Task</button>
+                    <table class="table"><thead><tr><th>Task</th><th>Patient</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-3">
+                    <h5>Record Vitals</h5>
+                    <input type="number" id="vitalPatientId" class="form-control mb-2" placeholder="Patient ID">
+                    <input type="text" id="temp" class="form-control mb-2" placeholder="Temp">
+                    <input type="text" id="hr" class="form-control mb-2" placeholder="HR">
+                    <input type="text" id="bp" class="form-control mb-2" placeholder="BP (sys/dia)">
+                    <input type="text" id="spo2" class="form-control mb-2" placeholder="SpO2">
+                    <button class="btn btn-primary" onclick="recordVitalsNurse()">Save</button>
+                </div>
+            </div>
+        </div>`;
 }
-
+function showNewTaskForm() {
+    const html = `
+        <input type="text" id="taskDesc" class="form-control mb-2" placeholder="Task description">
+        <input type="number" id="taskPatientId" class="form-control mb-2" placeholder="Patient ID">
+        <button class="btn btn-primary" onclick="createTask()">Add Task</button>
+    `;
+    openModal('New Task', html);
+}
+async function createTask() {
+    const data = {
+        patient_id: parseInt(document.getElementById('taskPatientId').value),
+        task: document.getElementById('taskDesc').value,
+        scheduled: new Date().toISOString()
+    };
+    try {
+        await api.post('/nursing/tasks', data);
+        addNotification('Task created');
+        bootstrap.Modal.getInstance(document.getElementById('genericModal')).hide();
+        navigateTo('nursing');
+    } catch(e) { alert(e.message); }
+}
 window.recordVitalsNurse = async function() {
     const pid = document.getElementById('vitalPatientId').value;
     const bp = document.getElementById('bp').value.split('/');
@@ -386,14 +334,197 @@ window.recordVitalsNurse = async function() {
     addNotification(`Vitals recorded for patient #${pid}`);
 }
 
+// ===================== DENTAL =====================
 async function loadDental() {
     const chart = await api.get('/dental/chart/1');
     const procs = await api.get('/dental/procedures');
     const teeth = chart.records.map(r => `<li class="list-group-item">Tooth ${r.tooth}: ${r.condition} (${r.treatment||''})</li>`).join('');
     const procItems = procs.procedures.map(p => `<li class="list-group-item">${p.name} - $${p.cost}</li>`).join('');
-    return `<div class="row"><div class="col-md-6"><div class="card p-3"><h5>Chart</h5><ul class="list-group">${teeth}</ul></div></div><div class="col-md-6"><div class="card p-3"><h5>Procedures</h5><ul class="list-group">${procItems}</ul></div></div></div>`;
+    return `
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card p-3 mb-3"><h5>Chart</h5><ul class="list-group">${teeth}</ul></div>
+                <div class="card p-3">
+                    <h5>Add Record</h5>
+                    <input type="number" id="toothNo" class="form-control mb-2" placeholder="Tooth Number">
+                    <select id="condition" class="form-select mb-2"><option value="caries">Caries</option><option value="filling">Filling</option><option value="missing">Missing</option></select>
+                    <input type="text" id="treatment" class="form-control mb-2" placeholder="Treatment">
+                    <button class="btn btn-primary" onclick="addDentalRecord()">Add</button>
+                </div>
+            </div>
+            <div class="col-md-6"><div class="card p-3"><h5>Procedures</h5><ul class="list-group">${procItems}</ul></div></div>
+        </div>`;
+}
+async function addDentalRecord() {
+    const data = {
+        patient_id: 1,
+        tooth: parseInt(document.getElementById('toothNo').value),
+        condition: document.getElementById('condition').value,
+        treatment: document.getElementById('treatment').value
+    };
+    try {
+        await api.post('/dental/chart', data);
+        addNotification('Dental record added');
+        navigateTo('dental');
+    } catch(e) { alert(e.message); }
 }
 
+// ===================== RECEPTION (دمج التسجيل والإدخال) =====================
+async function loadReceptionPage() {
+    let admissionsHtml = '';
+    try {
+        const res = await api.get('/admission');
+        if (res.success && res.admissions.length > 0) {
+            admissionsHtml = res.admissions.map(a => `<tr>
+                <td>${a.patient_name}</td><td>${a.age}</td><td>${a.mrn}</td>
+                <td>${a.diagnosis || '-'}</td><td>${a.department}</td>
+                <td>${new Date(a.admission_date).toLocaleDateString()}</td>
+                <td><span class="badge bg-${a.status === 'admitted' ? 'success' : 'secondary'}">${a.status}</span></td>
+            </tr>`).join('');
+        }
+    } catch(e) {}
+
+    return `
+        <div class="row">
+            <div class="col-md-8">
+                <ul class="nav nav-tabs mb-3" id="receptionTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="register-tab" data-bs-toggle="tab" data-bs-target="#registerPane" type="button" role="tab">Quick Registration</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="admit-tab" data-bs-toggle="tab" data-bs-target="#admitPane" type="button" role="tab">Admit Patient</button>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="registerPane" role="tabpanel">
+                        <div class="card p-3">
+                            <h5>Quick Registration</h5>
+                            <form onsubmit="registerReceptionPatient(event)">
+                                <input type="text" id="regFirstName" class="form-control mb-2" placeholder="First Name *" required>
+                                <input type="text" id="regLastName" class="form-control mb-2" placeholder="Last Name *" required>
+                                <input type="text" id="regPhone" class="form-control mb-2" placeholder="Phone">
+                                <select id="regBloodType" class="form-select mb-2">
+                                    <option value="">Blood Type</option>
+                                    <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+                                    <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+                                </select>
+                                <button type="submit" class="btn btn-primary">Register</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="admitPane" role="tabpanel">
+                        <div class="card p-3">
+                            <h5>Patient Admission</h5>
+                            <form onsubmit="submitAdmissionFromReception(event)">
+                                <input type="text" id="admName" class="form-control mb-2" placeholder="Patient Name *" required>
+                                <input type="number" id="admAge" class="form-control mb-2" placeholder="Age *" required>
+                                <input type="text" id="admMRN" class="form-control mb-2" placeholder="MRN *" required>
+                                <textarea id="admDiagnosis" class="form-control mb-2" rows="2" placeholder="Diagnosis"></textarea>
+                                <select id="admDepartment" class="form-select mb-2" required>
+                                    <option value="">Select Department *</option>
+                                    <option value="Internal Medicine">Internal Medicine</option>
+                                    <option value="ICU">Intensive Care Unit</option>
+                                    <option value="ER">Emergency Room</option>
+                                    <option value="Surgery">Surgery</option>
+                                    <option value="Pediatrics">Pediatrics</option>
+                                    <option value="Obstetrics">Obstetrics</option>
+                                    <option value="Cardiology">Cardiology</option>
+                                </select>
+                                <textarea id="admNotes" class="form-control mb-2" rows="2" placeholder="Notes"></textarea>
+                                <button type="submit" class="btn btn-danger">Admit Patient</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3 mb-3">
+                    <h5>Waiting Queue</h5>
+                    <ul class="list-group" id="queueList" style="max-height:200px;overflow-y:auto;">
+                        <li class="list-group-item text-muted">Loading...</li>
+                    </ul>
+                    <div class="mt-2">
+                        <input type="text" id="queuePatientId" class="form-control mb-1" placeholder="Patient ID">
+                        <input type="text" id="queuePatientName" class="form-control mb-1" placeholder="Name">
+                        <button class="btn btn-sm btn-success w-100 mb-1" onclick="addToQueue()">Add to Queue</button>
+                        <button class="btn btn-sm btn-warning w-100" onclick="serveNextQueue()">Serve Next</button>
+                    </div>
+                </div>
+                <div class="card p-3">
+                    <h5>Recent Admissions</h5>
+                    <div style="max-height:300px;overflow-y:auto;">
+                        <table class="table table-sm">
+                            <thead><tr><th>Name</th><th>Dept</th><th>Date</th></tr></thead>
+                            <tbody>${admissionsHtml || '<tr><td colspan="3" class="text-muted">None</td></tr>'}</tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            window.registerReceptionPatient = async function(e) {
+                e.preventDefault();
+                const data = {
+                    first_name: document.getElementById('regFirstName').value,
+                    last_name: document.getElementById('regLastName').value,
+                    phone: document.getElementById('regPhone').value,
+                    blood_type: document.getElementById('regBloodType').value
+                };
+                try {
+                    const res = await api.post('/reception/quick-register', data);
+                    if (res.success) {
+                        addNotification('Patient registered. MRN: ' + res.mrn);
+                        document.getElementById('regFirstName').value = '';
+                        document.getElementById('regLastName').value = '';
+                        document.getElementById('regPhone').value = '';
+                    }
+                } catch(err) { alert(err.message); }
+            };
+
+            window.submitAdmissionFromReception = async function(e) {
+                e.preventDefault();
+                const data = {
+                    patient_name: document.getElementById('admName').value,
+                    age: parseInt(document.getElementById('admAge').value),
+                    mrn: document.getElementById('admMRN').value,
+                    diagnosis: document.getElementById('admDiagnosis').value,
+                    department: document.getElementById('admDepartment').value,
+                    notes: document.getElementById('admNotes').value
+                };
+                try {
+                    await api.post('/admission', data);
+                    addNotification('Patient admitted');
+                    navigateTo('reception');
+                } catch(err) { alert(err.message); }
+            };
+
+            async function loadQueue() {
+                const res = await api.get('/reception/queue');
+                const list = document.getElementById('queueList');
+                if (!list) return;
+                if (res.queue.length === 0) list.innerHTML = '<li class="list-group-item text-muted">Empty</li>';
+                else list.innerHTML = res.queue.map((p,i) => `<li class="list-group-item d-flex justify-content-between"><span>${i+1}. ${p.name} (${p.patient_id})</span><small>${new Date(p.time).toLocaleTimeString()}</small></li>`).join('');
+            }
+            loadQueue();
+
+            window.addToQueue = async function() {
+                const id = document.getElementById('queuePatientId').value;
+                const name = document.getElementById('queuePatientName').value;
+                if (!id) return alert('Enter Patient ID');
+                await api.post('/reception/queue/add', { patient_id: id, name: name });
+                loadQueue();
+            };
+            window.serveNextQueue = async function() {
+                const res = await api.post('/reception/queue/next');
+                if (res.success) alert('Serving: ' + res.served.name);
+                else alert('Queue empty');
+                loadQueue();
+            };
+        </script>
+    `;
+}
+
+// ===================== جميع الدوال المتبقية (كما هي دون تغيير) =====================
 async function loadAdmin() {
     const health = await (await fetch('/api/health')).json();
     return `<div class="card p-3"><h5>System Info</h5><p>Tables: ${health.database.tables.join(', ')}</p><p>Users: ${health.counts.users} | Roles: ${health.counts.roles}</p></div>`;
@@ -406,16 +537,13 @@ async function loadTelemedicine() {
             <h5><i class="fas fa-video me-2"></i>Video Consultation</h5>
             <p>Schedule a virtual visit with your doctor.</p>
             <form id="teleForm">
-                <select id="teleDoctor" class="form-select mb-2">
-                    <option value="">Select Doctor</option>
-                </select>
+                <select id="teleDoctor" class="form-select mb-2"><option value="">Select Doctor</option></select>
                 <input type="date" id="teleDate" class="form-control mb-2" required>
                 <input type="time" id="teleTime" class="form-control mb-2" required>
                 <button type="submit" class="btn btn-primary"><i class="fas fa-video me-2"></i>Book Video Call</button>
             </form>
             <div id="teleLink" class="mt-3"></div>
-        </div>
-    `;
+        </div>`;
     setTimeout(async () => {
         const doctors = await api.get('/doctors');
         const sel = document.getElementById('teleDoctor');
@@ -469,8 +597,7 @@ async function loadAdminReports() {
                 <div class="col-md-3"><div class="stat-card"><i class="fas fa-dollar-sign text-info"></i><h3>$${revenue.toLocaleString()}</h3><p>Est. Revenue</p></div></div>
             </div>
             <button id="exportReportBtn" class="btn btn-outline-primary mt-3"><i class="fas fa-download me-2"></i>Export CSV</button>
-        </div>
-    `;
+        </div>`;
 }
 
 function showRateDoctor(doctorId, patientId) {
@@ -484,8 +611,7 @@ function showRateDoctor(doctorId, patientId) {
             <input type="radio" id="star1" name="rating" value="1"><label for="star1">★</label>
         </div>
         <textarea id="ratingComment" class="form-control mt-2" placeholder="Comment (optional)"></textarea>
-        <button class="btn btn-primary mt-2" onclick="submitRating(${doctorId}, ${patientId})">Submit Rating</button>
-    `;
+        <button class="btn btn-primary mt-2" onclick="submitRating(${doctorId}, ${patientId})">Submit Rating</button>`;
     openModal('Rate Doctor', html);
 }
 
@@ -502,24 +628,13 @@ async function loadMedicationReminders(patientId) {
     const activeRx = prescriptions.prescriptions.filter(p => p.status !== 'dispensed');
     let html = '';
     activeRx.forEach(rx => {
-        html += `<li class="list-group-item d-flex justify-content-between">
-            ${rx.drug_code} - ${rx.dosage}, ${rx.frequency}
-            <button class="btn btn-sm btn-outline-info" onclick="remindMedication('${rx.drug_code}', '${rx.frequency}')">Remind Me</button>
-        </li>`;
+        html += `<li class="list-group-item d-flex justify-content-between">${rx.drug_code} - ${rx.dosage}, ${rx.frequency}<button class="btn btn-sm btn-outline-info" onclick="remindMedication('${rx.drug_code}', '${rx.frequency}')">Remind Me</button></li>`;
     });
-    return `
-        <div class="card p-3 mt-3">
-            <h5><i class="fas fa-clock me-2"></i>Medication Reminders</h5>
-            <button class="btn btn-sm btn-outline-primary mb-2" onclick="enableNotifications()">Enable Browser Notifications</button>
-            <ul class="list-group">${html || '<li class="list-group-item text-muted">No active medications</li>'}</ul>
-        </div>`;
+    return `<div class="card p-3 mt-3"><h5><i class="fas fa-clock me-2"></i>Medication Reminders</h5><button class="btn btn-sm btn-outline-primary mb-2" onclick="enableNotifications()">Enable Browser Notifications</button><ul class="list-group">${html || '<li class="list-group-item text-muted">No active medications</li>'}</ul></div>`;
 }
 
 function enableNotifications() {
-    if (!("Notification" in window)) {
-        alert("This browser does not support desktop notifications");
-        return;
-    }
+    if (!("Notification" in window)) { alert("This browser does not support desktop notifications"); return; }
     Notification.requestPermission().then(perm => {
         if (perm === "granted") {
             addNotification("Notifications enabled! You will be reminded for medications.");
@@ -529,11 +644,8 @@ function enableNotifications() {
 }
 
 function remindMedication(drug, frequency) {
-    if (Notification.permission === "granted") {
-        new Notification("Medication Reminder", { body: `Time to take ${drug} (${frequency})` });
-    } else {
-        alert(`Reminder set for ${drug} (${frequency})`);
-    }
+    if (Notification.permission === "granted") new Notification("Medication Reminder", { body: `Time to take ${drug} (${frequency})` });
+    else alert(`Reminder set for ${drug} (${frequency})`);
 }
 
 function toggleChatbot() {
@@ -548,19 +660,12 @@ function sendChatMessage() {
     const messagesDiv = document.getElementById('chatbot-messages');
     messagesDiv.innerHTML += `<div class="text-end text-primary"><strong>You:</strong> ${msg}</div>`;
     input.value = '';
-
     let reply = '';
-    if (msg.includes('appointment') || msg.includes('book')) {
-        reply = 'You can book an appointment using the "Quick Actions" section on the Dashboard.';
-    } else if (msg.includes('prescription') || msg.includes('drug')) {
-        reply = 'Your doctor can write a prescription. Pharmacists can dispense them from the Pharmacy section.';
-    } else if (msg.includes('lab') || msg.includes('test')) {
-        reply = 'Lab tests are ordered by doctors. You can view your results in the Laboratory section.';
-    } else if (msg.includes('hello') || msg.includes('hi')) {
-        reply = 'Hello! I am your medical assistant. How can I help?';
-    } else {
-        reply = 'I am not sure about that. Please contact your healthcare provider.';
-    }
+    if (msg.includes('appointment') || msg.includes('book')) reply = 'You can book an appointment using the "Quick Actions" section on the Dashboard.';
+    else if (msg.includes('prescription') || msg.includes('drug')) reply = 'Your doctor can write a prescription. Pharmacists can dispense them from the Pharmacy section.';
+    else if (msg.includes('lab') || msg.includes('test')) reply = 'Lab tests are ordered by doctors. You can view your results in the Laboratory section.';
+    else if (msg.includes('hello') || msg.includes('hi')) reply = 'Hello! I am your medical assistant. How can I help?';
+    else reply = 'I am not sure about that. Please contact your healthcare provider.';
     messagesDiv.innerHTML += `<div class="text-success"><strong>Bot:</strong> ${reply}</div>`;
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
@@ -582,11 +687,8 @@ function updateNotifications() {
     const list = document.getElementById('notificationList');
     if (!badge || !list) return;
     badge.textContent = notificationsList.length;
-    if (notificationsList.length === 0) {
-        list.innerHTML = '<a class="dropdown-item text-muted">No notifications</a>';
-        return;
-    }
-    list.innerHTML = notificationsList.slice(0, 10).map(n => `<a class="dropdown-item" href="#">${n.text}<br><small class="text-muted">${n.time}</small></a>`).join('');
+    if (notificationsList.length === 0) list.innerHTML = '<a class="dropdown-item text-muted">No notifications</a>';
+    else list.innerHTML = notificationsList.slice(0, 10).map(n => `<a class="dropdown-item" href="#">${n.text}<br><small class="text-muted">${n.time}</small></a>`).join('');
 }
 
 // ========== QUICK ACTION FORMS ==========
@@ -694,24 +796,70 @@ async function createPrescription() {
     } catch(e) { alert(e.message); }
 }
 
-async function loadReceptionPage() {
-    return `
-        <div class="card p-3">
-            <h5><i class="fas fa-concierge-bell me-2"></i>Reception Dashboard</h5>
-            <p>Use the Reception Portal for full access to registration and queue management.</p>
-            <button class="btn btn-primary" onclick="window.open('/static/pages/reception.html', '_blank')">
-                <i class="fas fa-external-link-alt me-2"></i>Open Reception Portal
-            </button>
-        </div>`;
+function searchTable(input, tableId) {
+    const filter = input.value.toUpperCase();
+    document.querySelectorAll(`#${tableId} tbody tr`).forEach(row => {
+        row.style.display = row.textContent.toUpperCase().includes(filter) ? '' : 'none';
+    });
+}
+
+async function viewPatientDetails(patientId) {
+    const patient = await api.get(`/patients/${patientId}`);
+    const prescriptions = await api.get(`/pharmacy/prescriptions?patient_id=${patientId}`);
+    const labOrders = await api.get(`/laboratory/orders?patient_id=${patientId}`);
+    const radOrders = await api.get(`/radiology/orders?patient_id=${patientId}`);
+    const p = patient.patient;
+    const rxList = prescriptions.prescriptions.map(r => `<li class="list-group-item"><strong>${r.drug_code}</strong> - ${r.dosage}, ${r.frequency}, ${r.duration} (${r.status})</li>`).join('');
+    const labList = labOrders.orders.map(o => `<li class="list-group-item"><strong>${o.test_code}</strong> - ${o.status}</li>`).join('');
+    const radList = radOrders.orders.map(o => `<li class="list-group-item"><strong>${o.modality}</strong> - ${o.body_part} (${o.status})</li>`).join('');
+    openModal('Patient Details', `<h6>${p.user_name} (MRN: ${p.patient_id})</h6><p>Blood: ${p.blood_type||'N/A'} | Age: ${p.age||'N/A'}</p><hr><h6>Prescriptions</h6><ul class="list-group mb-2">${rxList||'<li class="list-group-item text-muted">None</li>'}</ul><h6>Lab Orders</h6><ul class="list-group mb-2">${labList||'<li class="list-group-item text-muted">None</li>'}</ul><h6>Radiology Orders</h6><ul class="list-group">${radList||'<li class="list-group-item text-muted">None</li>'}</ul>`);
+}
+
+async function showDetailSection(type) {
+    const container = document.getElementById('homeDetailContainer');
+    switch(type) {
+        case 'patients': container.innerHTML = await loadPatientsList(); break;
+        case 'doctors': container.innerHTML = await loadDoctorsList(); break;
+        case 'pendingAppointments': container.innerHTML = await loadPendingAppointmentsList(); break;
+    }
+}
+
+async function loadPatientsList() {
+    const res = await api.get('/patients');
+    let rows = res.patients.map(p => `<tr><td>${p.patient_id}</td><td>${p.user_name}</td><td>${p.blood_type||'-'}</td><td>${p.age||'-'}</td><td>${p.status}</td><td><button class="btn btn-sm btn-outline-info" onclick="viewPatientDetails(${p.id})">View</button></td></tr>`).join('');
+    return `<div class="card p-3"><h5>Patients (${res.patients.length})</h5><table class="table"><thead><tr><th>MRN</th><th>Name</th><th>Blood</th><th>Age</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+async function loadDoctorsList() {
+    const res = await api.get('/doctors');
+    let rows = res.doctors.map(d => `<tr><td>${d.name}</td><td>${d.specialty}</td><td>${d.experience_years || '-'} yrs</td><td>${d.is_available ? '<span class="badge bg-success">Available</span>' : '<span class="badge bg-secondary">Unavailable</span>'}</td></tr>`).join('');
+    return `<div class="card p-3"><h5>Doctors (${res.doctors.length})</h5><table class="table"><thead><tr><th>Name</th><th>Specialty</th><th>Experience</th><th>Availability</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+async function loadPendingAppointmentsList() {
+    const res = await api.get('/appointments');
+    const pending = res.appointments.filter(a => a.status === 'scheduled');
+    let rows = pending.map(a => `<tr><td>${a.id}</td><td>${a.patient_id}</td><td>${a.doctor_id}</td><td>${a.date} ${a.time}</td><td>${a.reason||''}</td><td>
+        <button class="btn btn-sm btn-outline-success me-1" onclick="confirmAppointment(${a.id})">Confirm</button>
+        <button class="btn btn-sm btn-outline-danger" onclick="cancelAppointment(${a.id})">Cancel</button>
+    </td></tr>`).join('');
+    return `<div class="card p-3"><h5>Pending Appointments (${pending.length})</h5><table class="table"><thead><tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Date/Time</th><th>Reason</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+async function confirmAppointment(id) {
+    await api.put(`/appointments/${id}`, { status: 'confirmed' });
+    addNotification(`Appointment #${id} confirmed`);
+    showDetailSection('pendingAppointments');
+}
+
+async function cancelAppointment(id) {
+    await api.put(`/appointments/${id}`, { status: 'cancelled' });
+    addNotification(`Appointment #${id} cancelled`);
+    showDetailSection('pendingAppointments');
 }
 
 async function loadRehabilitation() {
-    return `
-        <div class="card p-3">
-            <h5><i class="fas fa-dumbbell me-2"></i>Rehabilitation Portal</h5>
-            <p>Patient assessment, treatment plans, therapy sessions, progress tracking, and discharge planning.</p>
-            <div class="alert alert-info">This module will be fully implemented soon.</div>
-        </div>`;
+    return `<div class="card p-3"><h5><i class="fas fa-dumbbell me-2"></i>Rehabilitation Portal</h5><p>Patient assessment, treatment plans, therapy sessions, progress tracking, and discharge planning.</p><div class="alert alert-info">This module will be fully implemented soon.</div></div>`;
 }
 
 function logout() { api.clearToken(); window.location.href = '/static/pages/login.html'; }

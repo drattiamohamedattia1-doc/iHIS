@@ -49,6 +49,9 @@ def create_app(config_name='default'):
         from app.models.pharm import PharmacyInventory, Prescription
         from app.models.nurse import NursingTask, CarePlan
         from app.models.dental_m import DentalRecord, DentalProcedure
+
+        # ✅ NEW: Admission model
+        from app.models.admission import Admission
         
         # Create all tables
         db.create_all()
@@ -83,6 +86,10 @@ def create_app(config_name='default'):
     
     from app.routes.api.dental import dental_bp
     app.register_blueprint(dental_bp, url_prefix='/api/v1/dental')
+
+    # ✅ NEW: Admission blueprint
+    from app.routes.api.admission import admission_bp
+    app.register_blueprint(admission_bp, url_prefix='/api/v1/admission')
     
     # Register web routes (Protected Dashboard)
     from app.routes.web import web_bp
@@ -110,7 +117,8 @@ def create_app(config_name='default'):
                 'radiology': '/api/v1/radiology',
                 'pharmacy': '/api/v1/pharmacy',
                 'nursing': '/api/v1/nursing',
-                'dental': '/api/v1/dental'
+                'dental': '/api/v1/dental',
+                'admission': '/api/v1/admission'  # ✅ NEW endpoint
             },
             'test_users': {
                 'admin': {'username': 'admin', 'password': 'Admin@123', 'role': 'super_admin'},

@@ -9,10 +9,8 @@ const api = {
         const headers = { 'Content-Type': 'application/json' };
         const token = this.getToken();
         if (token) headers['Authorization'] = `Bearer ${token}`;
-
         const config = { method, headers };
         if (data) config.body = JSON.stringify(data);
-
         const response = await fetch(`${API_BASE}${endpoint}`, config);
         const json = await response.json();
         if (!response.ok) {
@@ -26,10 +24,3 @@ const api = {
     put(endpoint, data) { return this.request('PUT', endpoint, data); },
     delete(endpoint) { return this.request('DELETE', endpoint); }
 };
-
-// Check authentication on page load
-document.addEventListener('DOMContentLoaded', () => {
-    if (api.getToken() && window.location.pathname !== '/static/pages/login.html') {
-        // Optionally validate token via /api/v1/auth/me
-    }
-});
