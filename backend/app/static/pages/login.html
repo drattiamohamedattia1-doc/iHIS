@@ -48,19 +48,8 @@
             try {
                 const res = await api.post('/auth/login', { username, password });
                 api.setToken(res.access_token);
-                const me = await api.get('/auth/me');
-                const role = me.user.role;
-                const pages = {
-                    'patient': '/static/pages/patient.html',
-                    'doctor': '/static/pages/doctor.html',
-                    'lab_technician': '/static/pages/lab.html',
-                    'radiologist': '/static/pages/radiology.html',
-                    'pharmacist': '/static/pages/pharmacy.html',
-                    'nurse': '/static/pages/nursing.html',
-                    'admin': '/static/pages/admin.html',
-                    'super_admin': '/static/pages/admin.html'
-                };
-                window.location.href = pages[role] || '/static/pages/patient.html';
+                // تم التعديل هنا: توجيه جميع الأدوار إلى dashboard.html
+                window.location.href = '/static/pages/dashboard.html';
             } catch (err) {
                 errorDiv.textContent = err.message || 'Login failed';
                 errorDiv.classList.remove('d-none');
